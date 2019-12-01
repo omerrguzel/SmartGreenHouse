@@ -1,0 +1,84 @@
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#include<SoftwareSerial.h>
+
+SoftwareSerial bluegarden(10,11);
+OneWire oneWire(2);
+DallasTemperature DS18B20(&oneWire);
+DeviceAddress DS18B20adres;
+
+float santigrat ;
+int ledPin = 7;
+int LDRPin = A3;
+int zaman = 5000;
+float esik = 200 ;
+int sensorPin = A4;           
+int pompa = 8;                  
+int veri;                           
+int fan = 6;
+int zamanfan = 10000;
+int okunan_deger = 0;
+int nemdeger; 
+byte nempercent;
+
+void setup()
+{ 
+  Serial.begin(9600);
+  bluegarden.begin(9600);
+  DS18B20.begin();
+  DS18B20.getAddress(DS18B20adres, 0);
+  DS18B20.setResolution(DS18B20adres, 12);
+  pinMode(ledPin, OUTPUT);     
+  pinMode(pompa, OUTPUT);   
+  pinMode(fan,OUTPUT);
+}
+
+void loop()
+{
+    //ISIK
+ int isik_degeri = analogRead(LDRPin);
+delay(100);
+ if(isik_degeri<=esik)
+ {
+   digitalWrite(ledPin, LOW);
+ }
+ else
+ {
+   digitalWrite(ledPin, HIGH);
+ }
+ 
+ //NEM
+  nemdeger = analogRead(sensorPin);    //veri yi nemdeger yaptık
+ // Serial.println(nemdeger);
+  nempercent = map(nemdeger,1000,130,0,100);
+  if(nempercent < 30){         
+    digitalWrite(pompa, LOW);
+    delay(5000);
+    digitalWrite(pompa, HIGH);
+    delay(20000);
+  }
+  else{                           
+    digitalWrite(pompa, HIGH);
+  }
+  //SICAKLIK_FAN
+   DS18B20.requestTemperatures();
+   byte santigrat = DS18B20.getTempC(DS18B20adres);
+    if(santigrat>30)
+ {
+   digitalWrite(fan, LOW);
+   delay(zamanfan);
+   //digitalWrite(ledPin, HIGH);
+ }
+ else
+ {
+   digitalWrite(fan, HIGH);
+ }
+ Serial.print((int)nempercent);
+ Serial.print(" %"); 
+ Serial.print("|");
+ Serial.print((int)santigrat);
+ Serial.print(" C");
+ Serial.print("|");
+ Serial.println(" ");
+ delay(5000); 
+}
